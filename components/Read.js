@@ -1,66 +1,111 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { getDatabase, ref, get } from 'firebase/database';
+import { View, Text, TextInput, Button, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { getDatabase, ref, set, get } from 'firebase/database';
 import app from "../firebaseConfig";
-import { useFonts } from 'expo-font';
+import { MaterialIcons, Entypo } from '@expo/vector-icons'; // Importieren der Icons
 
 function Read() {
     const [productArray, setProductArray] = useState([]);
     const [buttonPressed, setButtonPressed] = useState(false);
-    const [cardButtonActive, setButtonCardActive] = useState(false);
+    const [editProductId, setEditProductId] = useState(null);
+    const [editProductName, setEditProductName] = useState('');
+    const [editProductPrice, setEditProductPrice] = useState('');
 
     const fetchData = async () => {
-        setButtonPressed(true);
+        
         const db = getDatabase(app);
         const dbRef = ref(db, "realtime/Products");
         const snapshot = await get(dbRef);
         if (snapshot.exists()) {
-            setProductArray(Object.values(snapshot.val()));
+            setProductArray(Object.values(snapshot.val()).map((product, index) => ({ ...product, id: Object.keys(snapshot.val())[index] })));
         } else {
             alert("Error: No data found");
         }
-        setTimeout(() => setButtonPressed(false), 0);  // Setzt den Zustand nach 0 Sekunden zurück
+        setTimeout(() => setButtonPressed(false), 0); 
     };
 
-    const productInfo = async (index) => {
-        setButtonCardActive(prevState => ({
-            ...prevState,
-            [index]: !prevState[index]  // Umschalten des Zustands der einzelnen Karte
-        }));
-        setTimeout(() => setButtonCardActive(false), 250);
-    }
+/*
+    useEffect(() => {
+        fetchData();
+    }, []);
+*/
+    const startEdit = (product) => {
+        setEditProductId(product.id);
+        setEditProductName(product.productName);
+        setEditProductPrice(product.productPrice);
+    };
 
-    let [fontsLoaded] = useFonts({
-        'PoetsenOne-Regular': require('../assets/fonts/PoetsenOne-Regular.ttf'),
-        'Courgette-Regular': require('../assets/fonts/Courgette-Regular.ttf'),
-        'Kalam-Bold': require('../assets/fonts/Kalam-Bold.ttf'),
-        'Kalam-Light': require('../assets/fonts/Kalam-Light.ttf'),
-        'Kalam-Regular': require('../assets/fonts/Kalam-Regular.ttf'),
-      })
+    const saveEdit = async () => {
+        const db = getDatabase(app);
+        const productRef = ref(db, `realtime/Products/${editProductId}`);
+        await set(productRef, {
+            productName: editProductName,
+            productPrice: editProductPrice
+        });
+        setEditProductId(null);
+        fetchData(); // Refresh data
+    };
+
+    const calculateTotalPrice = () => {
+        const sum = productArray.reduce((acc, item) => {
+            const price = parseFloat(item.productPrice.replace(',', '.'));
+            return acc + price;
+        }, 0);
+        Alert.alert (
+            "Summe",  // Titel des Alerts
+            `Die Gesamtsumme der Produktpreise beträgt: ${sum.toFixed(2)}€`,  // Nachricht
+            [
+                { text: "OK" }  // Button
+            ]
+        );
+    };
 
     return (
-    <View>
-        <TouchableOpacity onPress={fetchData} activeOpacity={1}> 
+        <View>
+            <TouchableOpacity  
+                onPress={() => {
+                    setButtonPressed(true);
+                    fetchData();
+                }} 
+                activeOpacity={1}
+            > 
                 <View style={[styles.header, buttonPressed ? styles.buttonActive : styles.buttonInactive]}>
                     <Text style={styles.buttonText}>Display Products</Text>
                 </View>
             </TouchableOpacity>
-        <ScrollView style={styles.container}>
-                                                {/* activeOpacity, damit der Button nur eine Farbe beim Anklicken hat */} 
-            {productArray.map((item, index) => (
-                <View key={index} style={[ index === productArray.length - 1 ? styles.lastCard : null]}>
-                    <TouchableOpacity key={index} onPress={() => productInfo(index)} activeOpacity={1}> 
-                        <View style={[cardButtonActive[index] ? styles.cardActive : styles.cardInactive]}>
-                            <Text style={styles.productName} >{item.productName}</Text>
-                            <Text style={styles.productPrice}>{item.productPrice}</Text>
-                        </View>
-                    </TouchableOpacity>
-                </View>
-            ))}
-        </ScrollView>
-    </View>
+            <ScrollView style={styles.container}>
+                {productArray.map((item, index) => (
+                    <View key={index} style={styles.productCard}>
+                        {/* Der TouchableOpacity hier ist ausschließlich für das Icon. */}
+                        <TouchableOpacity onPress={() => startEdit(item)} style={styles.editIcon}>
+                            <Entypo name="edit" size={30} color="black" />
+                        </TouchableOpacity>
+                        {editProductId === item.id ? (
+                            <View>
+                                <TextInput style={styles.productName} value={editProductName} onChangeText={setEditProductName} />
+                                <TextInput style={styles.productPrice} value={editProductPrice} onChangeText={setEditProductPrice} />
+                                <TouchableOpacity style={styles.doneIcon} title="Gesamtsumme berechnen" onPress={saveEdit} >
+                                    <MaterialIcons name="done-outline" size={30} color="#000" />
+                                </TouchableOpacity>
+                            </View>
+                        ) : (
+                            <View>
+                                <Text style={styles.productName}>{item.productName}</Text>
+                                <Text style={styles.productPrice}>{item.productPrice}</Text>
+                            </View>
+                        )}
+                    </View>
+                ))}
+            </ScrollView>
+            <View style={{alignItems: 'center', justifyContent: 'center'}}>
+                <TouchableOpacity style={styles.buttonSumProducts} title="Gesamtsumme berechnen" onPress={calculateTotalPrice} >
+                    <MaterialIcons name="attach-money" size={30} color="#FFC90E" />
+                </TouchableOpacity>
+            </View>
+        </View>
     );
-}
+}    
+
 
 const styles = StyleSheet.create({
     container: {
@@ -80,7 +125,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginHorizontal: 20,
         overflow: 'hidden',  // Wichtig für abgerundete Ecken
-        marginTop: 20,
         borderColor: '#fff',
         borderWidth: 4,
     },
@@ -116,7 +160,7 @@ const styles = StyleSheet.create({
         fontFamily: 'Kalam-Regular',
     },
     lastCard: {
-        marginBottom: 30,
+        marginBottom: 20,
     },
     buttonInactive: {
         backgroundColor: '#21ABA5',  // Hintergrundfarbe beim Aktivieren
@@ -155,7 +199,36 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         height: 80,
         justifyContent: 'center',
-    }
+    },
+    editIcon: {
+        position: 'absolute',
+        top: 5,
+        right: 10,
+        zIndex: 10
+    },
+    doneIcon: {
+        position: 'absolute',
+        top: 35,
+        right: -2,
+        zIndex: 10,
+    },
+    buttonSumProducts: {
+        padding: 15,
+        borderRadius: 50,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginHorizontal: 20,
+        marginTop: 20,
+        overflow: 'hidden',  // Wichtig für abgerundete Ecken
+        borderColor: '#fff',
+        borderWidth: 2,
+        backgroundColor:'#21ABA5'
+    },
+    buttonSumText: {
+        color: '#000',
+        fontFamily: 'Kalam-Bold',
+        fontSize: 22,
+    },
 });
 
 export default Read;

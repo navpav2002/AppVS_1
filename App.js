@@ -12,6 +12,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 
+
 const app = initializeApp(firebaseConfig);
 
 const Stack = createNativeStackNavigator();
@@ -64,7 +65,6 @@ const AuthenticatedScreen = ({ user, handleAuthentication, navigation }) => {
             <Text style={styles.title}>Welcome</Text>
             <Text style={styles.emailText}>{user.email}</Text>
             <Button title="Logout" onPress={handleAuthentication} color="#e74c3c" />
-            <Button title="Product List" onPress={() => navigation.navigate('ProductList')}/>
           </View>
         </View>
       </View>
