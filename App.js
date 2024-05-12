@@ -12,7 +12,6 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 
-
 const app = initializeApp(firebaseConfig);
 
 const Stack = createNativeStackNavigator();
@@ -58,9 +57,7 @@ const AuthScreen = ({ email, setEmail, password, setPassword, isLogin, setIsLogi
 const AuthenticatedScreen = ({ user, handleAuthentication, navigation }) => {
   return (
     <View style={styles.container}>
-        <CustomImage />
       <View>
-        <Read/>
         <View>
           <Write/>
           <View style={styles.authContainer}>
@@ -141,6 +138,8 @@ export default App = () => {
             options={{
               headerStyle: {
                 backgroundColor: '#21ABA5', // Setzt die Hintergrundfarbe der Kopfzeile
+                borderBottomWidth: 4,  // Setzt eine Linie unter dem Header
+                borderBottomColor: 'white'
               },
               headerTitleAlign: 'center', // Zentriert den Titel
               headerTintColor: '#fff', // Setzt die Farbe des Titels
@@ -171,11 +170,13 @@ export default App = () => {
             {(props) => <AuthenticatedScreen {...props} user={user} handleAuthentication={handleAuthentication} />}
           </Tab.Screen>
           <Tab.Screen 
-            name="ProductList" 
+            name="Product List" 
             component={ProductListScreen} 
             options={{
               headerStyle: {
                 backgroundColor: '#21ABA5', // Setzt die Hintergrundfarbe der Kopfzeile
+                borderBottomWidth: 4,  // Setzt eine Linie unter dem Header
+                borderBottomColor: 'white'
               },
               headerTitleAlign: 'center', // Zentriert den Titel
               headerTintColor: '#fff', // Setzt die Farbe des Titels
@@ -242,11 +243,6 @@ export default App = () => {
 const ProductListScreen = () => {
   return (
     <View style={styles.container}>
-      <Text style={{top: -280}}>
-        Entdecken Sie auf Ihrem Android-Gerät eine übersichtliche 
-        Liste von Produkten! Unsere App bietet eine einfache und intuitive Bedienung, 
-        ideal für schnelles und effizientes Einkaufen. Perfekt für unterwegs!
-      </Text>
       <Read/>
     </View>
   );
