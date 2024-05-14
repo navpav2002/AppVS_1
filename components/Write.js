@@ -1,36 +1,74 @@
-
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import app from "../firebaseConfig";
 import { getDatabase, ref, set, push } from 'firebase/database';
-import { TextInput, View, Button, StyleSheet} from 'react-native'; // geändert von 'react-native-web' zu 'react-native'
+import { TextInput, View, Button, StyleSheet, FlatList, Text, TouchableOpacity } from 'react-native'; 
+import { FontAwesome6 } from '@expo/vector-icons';
 
-function Write() {
-    let [inputValue1, setInputValue1] = useState("");
-    let [inputValue2, setInputValue2] = useState("");
+function Write({ email }) {
+    const [inputValue1, setInputValue1] = useState("");
+    const [inputValue2, setInputValue2] = useState("");
+    const [products, setProducts] = useState([]);
+
+    const addProduct = () => {
+        setProducts([...products, { productName: inputValue1, productPrice: inputValue2 }]);
+        setInputValue1("");
+        setInputValue2("");
+    };
+
+    const removeProduct = (index) => { 
+        setProducts(products.filter((_, i) => i !== index)); // (element, index, array) => Condition
+    };
 
     const saveProducts = async () => {
         const db = getDatabase(app);
-        const newDocRef = push(ref(db, "realtime/Products"));
-        set(newDocRef, {productName: inputValue1, productPrice: inputValue2})
+        const productsRef = ref(db, "realtime/Products");
+
+        const promises = products.map(product => {
+            const newDocRef = push(productsRef);
+            return set(newDocRef, { ...product, email });
+        });
+
+        Promise.all(promises)
         .then(() => {
-            alert("data saved successfully");
+            alert("All products saved successfully");
         }).catch((error) => {
-            alert("error: " + error.message); // geändert zur korrekten Fehlerausgabe
+            alert("Error: " + error.message); 
         });
     };
 
     return (
         <View>
             <View style={styles.textInput1View}>
-                <TextInput value={inputValue1}
-                onChangeText={(text) => setInputValue1(text)} /> 
+                <TextInput 
+                    value={inputValue1}
+                    onChangeText={(text) => setInputValue1(text)}
+                    placeholder="Product Name"
+                /> 
             </View>
             <View style={styles.textInput2View}>
-                <TextInput value={inputValue2}
-                onChangeText={(text) => setInputValue2(text)} />
+                <TextInput 
+                    value={inputValue2}
+                    onChangeText={(text) => setInputValue2(text)}
+                    placeholder="Product Price"
+                />
             </View>
+            <View style={styles.addProductView}>
+                <TouchableOpacity style={styles.addButtonIcon} title="Add Product" onPress={addProduct} >
+                    <FontAwesome6 name="add" size={30} color="#000" />
+                </TouchableOpacity>
+            </View>
+            <FlatList 
+                data={products}
+                renderItem={({ item, index }) => (
+                    <View style={styles.productItem}>
+                        <Text>{item.productName} - {item.productPrice}</Text>
+                        <Button title="Remove" onPress={() => removeProduct(index)} />
+                    </View>
+                )}
+                keyExtractor={(item, index) => index.toString()}
+            />
             <View>
-                <Button onPress={saveProducts} title="Save Product" />
+                <Button onPress={saveProducts} title="Save All Products" />
             </View> 
         </View>
     );
@@ -42,16 +80,47 @@ const styles = StyleSheet.create({
         borderColor: '#000000',
         borderRadius: 10,
         borderWidth: 1,
+        marginBottom: 10,
+        padding: 10,
     },
     textInput2View: {
         backgroundColor: '#B4DEE4',
         borderRadius: 10,
         borderWidth: 1,
+        marginBottom: 10,
+        padding: 10,
     },
     buttonStyle1: {
         borderRadius: 10,
         borderWidth: 1,
+        marginBottom: 10,
+    },
+    productItem: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 10,
+        backgroundColor: '#FFF',
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#DDD',
+        marginBottom: 10,
+    },
+    addButtonIcon: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#FFF',
+        borderRadius: 90,
+        borderWidth: 1,
+        borderColor: '#000',
+        marginBottom: 10,
+        width: 60,
+        height: 60,
+    },
+    addProductView: {
+        justifyContent: 'center',
+        alignItems: 'center',
     }
-})
+});
 
 export default Write;

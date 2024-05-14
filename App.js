@@ -9,7 +9,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useFonts } from 'expo-font';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons, Entypo} from '@expo/vector-icons';
 
 
 
@@ -55,12 +55,12 @@ const AuthScreen = ({ email, setEmail, password, setPassword, isLogin, setIsLogi
 }
 
 // AuthenticatedScreen
-const AuthenticatedScreen = ({ user, handleAuthentication, navigation }) => {
+const AuthenticatedScreen = ({ user, handleAuthentication, navigation, email }) => {
   return (
     <View style={styles.container}>
       <View>
         <View>
-          <Write/>
+          <Write email={email}/>
           <View style={styles.authContainer}>
             <Text style={styles.title}>Welcome</Text>
             <Text style={styles.emailText}>{user.email}</Text>
@@ -167,8 +167,46 @@ export default App = () => {
               },
             }}
           >
-            {(props) => <AuthenticatedScreen {...props} user={user} handleAuthentication={handleAuthentication} />}
+            {(props) => <AuthenticatedScreen {...props} email={email} user={user} handleAuthentication={handleAuthentication} />}
           </Tab.Screen>
+          
+          <Tab.Screen 
+            name="Create Product List"
+            options={{
+              headerStyle: {
+                backgroundColor: '#21ABA5', // Setzt die Hintergrundfarbe der Kopfzeile
+                borderBottomWidth: 4,  // Setzt eine Linie unter dem Header
+                borderBottomColor: 'white'
+              },
+              headerTitleAlign: 'center', // Zentriert den Titel
+              headerTintColor: '#fff', // Setzt die Farbe des Titels
+              headerTitleStyle: {
+                fontFamily: 'Kalam-Bold', // Setzt die Schriftfamilie
+                fontSize: 34, // Setzt die Schriftgröße
+              },
+              tabBarLabel: 'New List',
+              tabBarActiveTintColor: '#6420AA', // Farbe des Icons und Texts, wenn aktiv
+              tabBarInactiveTintColor: '#fff',
+              tabBarStyle: {
+                backgroundColor: '#21ABA5',
+                height: 70,
+              },
+              tabBarLabelStyle: {
+                fontSize: 20, // Setzt die Schriftgröße des Labels
+                fontFamily: 'Kalam-Regular',
+                color: '#fff',
+              },
+              tabBarIcon: ({ focused, color, size }) => (
+                <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                  {focused && <View style={{ height: 4, width: '100%', backgroundColor: '#6420AA' }} />}
+                  <Entypo name="add-to-list" color={color} size={size * 1.5} />
+                </View>
+              ),
+            }}
+          >
+             {(props) => <NewListScreen {...props} email={email} user={user} />}
+          </Tab.Screen>
+
           <Tab.Screen 
             name="Product List" 
             component={ProductListScreen} 
@@ -244,6 +282,14 @@ const ProductListScreen = () => {
   return (
     <View style={styles.container}>
       <Read/>
+    </View>
+  );
+};
+
+const NewListScreen = ({email}) => {
+  return (
+    <View style={styles.container}>
+      <Write email={email}/>
     </View>
   );
 };

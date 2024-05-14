@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { getDatabase, ref, set, get } from 'firebase/database';
+import { getDatabase, ref, set, get, remove } from 'firebase/database';
 import app from "../firebaseConfig";
-import { MaterialIcons, Entypo } from '@expo/vector-icons'; // Importieren der Icons
+import { MaterialIcons, Entypo, MaterialCommunityIcons } from '@expo/vector-icons'; // Importieren der Icons
 
 function Read() {
     const [productArray, setProductArray] = useState([]);
     const [buttonPressed, setButtonPressed] = useState(false);
+    const [editButtonPressed, setEditButtonPressed] = useState(false);
     const [editProductId, setEditProductId] = useState(null);
     const [editProductName, setEditProductName] = useState('');
     const [editProductPrice, setEditProductPrice] = useState('');
@@ -60,6 +61,14 @@ function Read() {
         );
     };
 
+    const deleteProduct = async (ProductId) => {
+        const db = getDatabase(app);
+        const productRef = ref(db, `realtime/Products/${ProductId}`);
+        await remove(productRef);
+        // window.location.reload();
+        fetchData();
+    }
+
     return (
         <View>
             <TouchableOpacity  
@@ -77,8 +86,11 @@ function Read() {
                 {productArray.map((item, index) => (
                     <View key={index} style={styles.productCard}>
                         {/* Der TouchableOpacity hier ist ausschließlich für das Icon. */}
-                        <TouchableOpacity onPress={() => startEdit(item)} style={styles.editIcon}>
+                        <TouchableOpacity style={[styles.editIcon, editButtonPressed ? styles.editButtonActive : styles.editButtonInactive]} onPress={() => startEdit(item)}>
                             <Entypo name="edit" size={30} color="black" />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => deleteProduct(item.id)} style={styles.deleteIcon}>
+                            <MaterialCommunityIcons name="delete-forever" size={30} color="black" />
                         </TouchableOpacity>
                         {editProductId === item.id ? (
                             <View>
@@ -168,6 +180,12 @@ const styles = StyleSheet.create({
     buttonActive: {
         backgroundColor: '#FFC90E',  // Hintergrundfarbe beim Aktivieren
     },
+    editButtonActive: {
+
+    },
+    editButtonInactive: {
+
+    },
     cardActive: {
         backgroundColor: '#FFC90E',
         borderRadius: 15,
@@ -206,11 +224,20 @@ const styles = StyleSheet.create({
         right: 10,
         zIndex: 10
     },
+    deleteIcon: {
+        position: 'absolute',
+        top: 45,
+        right: 10,
+        zIndex: 10,
+    },
     doneIcon: {
         position: 'absolute',
-        top: 35,
-        right: -2,
+        top: 55,
+        right: 120,
         zIndex: 10,
+        borderWidth: 3,
+        borderColor: '#000',
+        borderRadius: 3,
     },
     buttonSumProducts: {
         padding: 15,
