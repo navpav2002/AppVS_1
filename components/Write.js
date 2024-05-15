@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import app from "../firebaseConfig";
 import { getDatabase, ref, set, push } from 'firebase/database';
-import { TextInput, View, Button, StyleSheet, FlatList, Text, TouchableOpacity } from 'react-native'; 
+import { TextInput, View, Button, StyleSheet, FlatList, Text, TouchableOpacity, ScrollView } from 'react-native'; 
 import { FontAwesome6 } from '@expo/vector-icons';
 
 function Write({ email }) {
@@ -37,10 +37,11 @@ function Write({ email }) {
     };
 
     return (
-        <View>
+        <View style={styles.newListView}>
             <View style={styles.textInput1View}>
                 <TextInput 
                     value={inputValue1}
+                    style={styles.textInput1}
                     onChangeText={(text) => setInputValue1(text)}
                     placeholder="Product Name"
                 /> 
@@ -54,10 +55,11 @@ function Write({ email }) {
             </View>
             <View style={styles.addProductView}>
                 <TouchableOpacity style={styles.addButtonIcon} title="Add Product" onPress={addProduct} >
-                    <FontAwesome6 name="add" size={30} color="#000" />
+                    <FontAwesome6 name="add" size={30} color="#fff" />
                 </TouchableOpacity>
             </View>
-            <FlatList 
+            <View style={styles.container}>
+            <FlatList
                 data={products}
                 renderItem={({ item, index }) => (
                     <View style={styles.productItem}>
@@ -67,14 +69,26 @@ function Write({ email }) {
                 )}
                 keyExtractor={(item, index) => index.toString()}
             />
-            <View>
+            </View>
+            <View style={styles.allProductsButtonView}>
                 <Button onPress={saveProducts} title="Save All Products" />
             </View> 
+            
         </View>
     );
 }
 
 const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#21ABA5',
+        width: 300,
+        borderColor: '#fff',
+        borderWidth: 4,
+        borderRadius: 15,
+        overflow: 'hidden', // Wichtig, um den Inhalt innerhalb der abgerundeten Grenzen zu halten
+        marginTop: 10,
+    },
     textInput1View: {
         backgroundColor: '#B4DEE4',
         borderColor: '#000000',
@@ -82,6 +96,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         marginBottom: 10,
         padding: 10,
+        width: 200,
     },
     textInput2View: {
         backgroundColor: '#B4DEE4',
@@ -89,6 +104,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         marginBottom: 10,
         padding: 10,
+        width: 200
     },
     buttonStyle1: {
         borderRadius: 10,
@@ -116,8 +132,16 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         width: 60,
         height: 60,
+        backgroundColor: '#6420AA'
     },
     addProductView: {
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    allProductsButtonView: {
+        width: 120,
+        height: 60,
+        backgroundColor: '#B4DEE4',
         justifyContent: 'center',
         alignItems: 'center',
     }
