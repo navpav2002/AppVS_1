@@ -25,11 +25,11 @@ function Read() {
         setTimeout(() => setButtonPressed(false), 0); 
     };
 
-/*
+
     useEffect(() => {
         fetchData();
     }, []);
-*/
+
     const startEdit = (product) => {
         setEditProductId(product.id);
         setEditProductName(product.productName);
@@ -71,17 +71,6 @@ function Read() {
 
     return (
         <View>
-            <TouchableOpacity  
-                onPress={() => {
-                    setButtonPressed(true);
-                    fetchData();
-                }} 
-                activeOpacity={1}
-            > 
-                <View style={[styles.header, buttonPressed ? styles.buttonActive : styles.buttonInactive]}>
-                    <Text style={styles.buttonText}>Display Products</Text>
-                </View>
-            </TouchableOpacity>
             <ScrollView style={styles.container}>
                 {productArray.map((item, index) => (
                     <View key={index} style={styles.productCard}>
@@ -111,7 +100,7 @@ function Read() {
             </ScrollView>
             <View style={{alignItems: 'center', justifyContent: 'center'}}>
                 <TouchableOpacity style={styles.buttonSumProducts} title="Gesamtsumme berechnen" onPress={calculateTotalPrice} >
-                    <MaterialIcons name="attach-money" size={30} color="#FFC90E" />
+                    <MaterialIcons name="attach-money" size={30} color={'#fff'} />
                 </TouchableOpacity>
             </View>
         </View>
@@ -139,6 +128,7 @@ const styles = StyleSheet.create({
         overflow: 'hidden',  // Wichtig für abgerundete Ecken
         borderColor: '#fff',
         borderWidth: 4,
+        marginTop: -5,
     },
     buttonText: {
         color: '#000',
@@ -176,9 +166,11 @@ const styles = StyleSheet.create({
     },
     buttonInactive: {
         backgroundColor: '#21ABA5',  // Hintergrundfarbe beim Aktivieren
+        height: 80,
     },
     buttonActive: {
         backgroundColor: '#FFC90E',  // Hintergrundfarbe beim Aktivieren
+        height: 80,
     },
     editButtonActive: {
 
@@ -240,16 +232,20 @@ const styles = StyleSheet.create({
         borderRadius: 3,
     },
     buttonSumProducts: {
-        padding: 15,
-        borderRadius: 50,
-        alignItems: 'center',
         justifyContent: 'center',
-        marginHorizontal: 20,
-        marginTop: 20,
-        overflow: 'hidden',  // Wichtig für abgerundete Ecken
+        alignItems: 'center',
+        borderRadius: 90,
+        borderWidth: 3,
         borderColor: '#fff',
-        borderWidth: 2,
-        backgroundColor:'#21ABA5'
+        width: 60,
+        height: 60,
+        backgroundColor: '#FFC90E',
+        shadowColor: '#000', // Farbe des Schattens
+        shadowOffset: { width: 0, height: 4 }, // Versatz des Schattens
+        shadowOpacity: 0.5, // Deckkraft des Schattens
+        shadowRadius: 5, // Radius des Schattens
+        elevation: 10, // Für Android-Schatten
+        marginTop: 8,
     },
     buttonSumText: {
         color: '#000',
