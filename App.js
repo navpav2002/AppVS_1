@@ -9,7 +9,11 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useFonts } from 'expo-font';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { MaterialCommunityIcons, Entypo} from '@expo/vector-icons';
+import { MaterialCommunityIcons, Entypo } from '@expo/vector-icons';
+import RecentProducts from './components/RecentProducts';
+import LineChartComponent from './components/LineChartComponent';
+import { AntDesign } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 
 
 
@@ -56,15 +60,16 @@ const AuthScreen = ({ email, setEmail, password, setPassword, isLogin, setIsLogi
 
 // AuthenticatedScreen
 const AuthenticatedScreen = ({ user, handleAuthentication, navigation, email }) => {
+
   return (
     <View style={styles.container}>
       <View>
         <View>
-          <Write email={email}/>
           <View style={styles.authContainer}>
             <Text style={styles.title}>Welcome</Text>
             <Text style={styles.emailText}>{user.email}</Text>
             <Button title="Logout" onPress={handleAuthentication} color="#e74c3c" />
+            <RecentProducts email={user.email}/>
           </View>
         </View>
       </View>
@@ -88,7 +93,6 @@ export default App = () => {
     'Kalam-Light': require('./assets/fonts/Kalam-Light.ttf'),
     'Kalam-Regular': require('./assets/fonts/Kalam-Regular.ttf'),
   })
-
   // Setting up Firebase authentication
   const auth = getAuth(app);
 
@@ -206,6 +210,43 @@ export default App = () => {
           >
              {(props) => <NewListScreen {...props} email={email} user={user} />}
           </Tab.Screen>
+          
+          <Tab.Screen 
+            name="Statistics"
+            options={{
+              headerStyle: {
+                backgroundColor: '#21ABA5', // Setzt die Hintergrundfarbe der Kopfzeile
+                borderBottomWidth: 4,  // Setzt eine Linie unter dem Header
+                borderBottomColor: 'white'
+              },
+              headerTitleAlign: 'center', // Zentriert den Titel
+              headerTintColor: '#fff', // Setzt die Farbe des Titels
+              headerTitleStyle: {
+                fontFamily: 'Kalam-Bold', // Setzt die Schriftfamilie
+                fontSize: 34, // Setzt die Schriftgröße
+              },
+              tabBarLabel: 'Statistics',
+              tabBarActiveTintColor: '#a1eb34', // Farbe des Icons und Texts, wenn aktiv
+              tabBarInactiveTintColor: '#fff',
+              tabBarStyle: {
+                backgroundColor: '#21ABA5',
+                height: 70,
+              },
+              tabBarLabelStyle: {
+                fontSize: 20, // Setzt die Schriftgröße des Labels
+                fontFamily: 'Kalam-Regular',
+                color: '#fff',
+              },
+              tabBarIcon: ({ focused, color, size }) => (
+                <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                  {focused && <View style={{ height: 4, width: '100%', backgroundColor: '#a1eb34' }} />}
+                  <MaterialIcons name="query-stats" size={size * 1.5} color={color} />
+                </View>
+              ),
+            }}
+          >
+             {(props) => <StatisticsScreen {...props} email={email} user={user} />}
+          </Tab.Screen>
 
           <Tab.Screen 
             name="Product List" 
@@ -290,6 +331,14 @@ const NewListScreen = ({email}) => {
   return (
     <View style={styles.container}>
       <Write email={email}/>
+    </View>
+  );
+};
+
+const StatisticsScreen =({email}) => {
+  return (
+    <View style={styles.container}>
+      <LineChartComponent email={email}/>
     </View>
   );
 };

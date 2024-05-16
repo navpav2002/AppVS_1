@@ -31,6 +31,7 @@ function Write({ email }) {
         Promise.all(promises)
         .then(() => {
             alert("All products saved successfully");
+            setProducts([]);
         }).catch((error) => {
             alert("Error: " + error.message); 
         });
