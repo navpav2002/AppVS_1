@@ -45,7 +45,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     elevation: 3,
     marginTop: 16,
-    width: '90%'
+    width: '90%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   title: {
     fontSize: 24,

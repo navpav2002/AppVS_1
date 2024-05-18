@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, ScrollView, Image } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, ScrollView, Image, ImageBackground } from 'react-native';
 import { initializeApp } from '@firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from '@firebase/auth';
 import Write from './components/Write';
@@ -14,6 +14,7 @@ import RecentProducts from './components/RecentProducts';
 import LineChartComponent from './components/LineChartComponent';
 import { AntDesign } from '@expo/vector-icons';
 import { MaterialIcons } from '@expo/vector-icons';
+import GlassButton from './components/GlassButton';
 
 
 
@@ -24,52 +25,55 @@ const Stack = createNativeStackNavigator();
 // AuthScreen
 const AuthScreen = ({ email, setEmail, password, setPassword, isLogin, setIsLogin, handleAuthentication }) => {
   return (
+    <ImageBackground source={require('./assets/Glassmorphism2.jpg')} style={styles.backgroundImage} >
     <View style={styles.container}>
       <CustomImage/>
-        <View style={styles.authContainer}>
-
-          <Text style={styles.title}>{isLogin ? 'Sign In' : 'Sign Up'}</Text>
-
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            placeholder="Email"
-            autoCapitalize="none"
-          />
-          <TextInput
-            style={styles.input}
-            value={password}
-            onChangeText={setPassword}
-            placeholder="Password"
-            secureTextEntry
-          />
-          <View style={styles.buttonContainer}>
-            <Button title={isLogin ? 'Sign In' : 'Sign Up'} onPress={handleAuthentication} color="#3498db" />
-          </View>
-
-          <View style={styles.bottomContainer}>
-            <Text style={styles.toggleText} onPress={() => setIsLogin(!isLogin)}>
-              {isLogin ? 'Need an account? Sign Up' : 'Already have an account? Sign In'}
-            </Text>
-          </View>
+      <View style={styles.authContainer}>
+        <Text style={styles.title}>{isLogin ? 'Sign In' : 'Sign Up'}</Text>
+        <TextInput
+          style={styles.authInput}
+          value={email}
+          onChangeText={setEmail}
+          placeholder="Email"
+          autoCapitalize="none"
+        />
+        <TextInput
+          style={styles.authInput}
+          value={password}
+          onChangeText={setPassword}
+          placeholder="Password"
+          secureTextEntry
+        />
+        <View style={styles.buttonContainer}>
+          <GlassButton title={isLogin ? 'Sign In' : 'Sign Up'} onPress={handleAuthentication} color="#3498db" />
+          
         </View>
+        <View style={styles.bottomContainer}>
+          <Text style={styles.toggleText} onPress={() => setIsLogin(!isLogin)}>
+            {isLogin ? 'Need an account? Sign Up' : 'Already have an account? Sign In'}
+          </Text>
+        </View>
+      </View>
     </View>
+    </ImageBackground>
   );
 }
+
 
 // AuthenticatedScreen
 const AuthenticatedScreen = ({ user, handleAuthentication, navigation, email }) => {
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container2}>
       <View>
         <View>
-          <View style={styles.authContainer}>
+          <View style={styles.authContainer2}>
             <Text style={styles.title}>Welcome</Text>
             <Text style={styles.emailText}>{user.email}</Text>
             <Button title="Logout" onPress={handleAuthentication} color="#e74c3c" />
-            <RecentProducts email={user.email}/>
+            <View style={{justifyContent: 'center', alignItems: 'center'}}>
+              <RecentProducts email={user.email}/>
+            </View>
           </View>
         </View>
       </View>
@@ -321,7 +325,7 @@ export default App = () => {
 
 const ProductListScreen = () => {
   return (
-    <View style={styles.container}>
+    <View style={styles.container2}>
       <Read/>
     </View>
   );
@@ -329,7 +333,7 @@ const ProductListScreen = () => {
 
 const NewListScreen = ({email}) => {
   return (
-    <View style={styles.container}>
+    <View style={styles.container2}>
       <Write email={email}/>
     </View>
   );
@@ -337,7 +341,7 @@ const NewListScreen = ({email}) => {
 
 const StatisticsScreen =({email}) => {
   return (
-    <View style={styles.container}>
+    <View style={styles.container2}>
       <LineChartComponent email={email}/>
     </View>
   );
@@ -349,16 +353,42 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
+    //backgroundColor: '#B4DEE4',
+  },
+  container2: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
     backgroundColor: '#B4DEE4',
+    flex: 1,
+  },
+  backgroundImage: {
+    flex: 1,
+    resizeMode: 'cover',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   authContainer: {
+    width: 280,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)', // Transparenz für den Glas-Effekt
+    padding: 16,
+    borderRadius: 8,
+    elevation: 3,
+    shadowColor: '#000', // Schattenfarbe
+    shadowOffset: { width: 0, height: 4 }, // Position des Schattens
+    shadowOpacity: 0.3, // Transparenz des Schattens
+    shadowRadius: 4, // Weichheit des Schattens
+    alignItems: 'center', // Zentriert die Inhalte horizontal
+    justifyContent: 'center', // Zentriert die Inhalte vertikal
+  },
+  authContainer2: {
     width: '80%',
     backgroundColor: '#fff',
     padding: 16,
     borderRadius: 8,
     elevation: 3,
     width: 300,
-
   },
   title: {
     fontSize: 24,
@@ -373,12 +403,22 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 4,
   },
+  authInput: {
+    height: 40,
+    borderColor: '#ddd',
+    borderWidth: 1,
+    marginBottom: 16,
+    padding: 8,
+    borderRadius: 4,
+    width: 200,
+  },
   buttonContainer: {
     marginBottom: 16,
   },
   toggleText: {
-    color: '#3498db',
+    color: '#000',
     textAlign: 'center',
+    fontSize: 16,
   },
   bottomContainer: {
     marginTop: 20,
