@@ -7,12 +7,15 @@ import { useFonts } from 'expo-font';
 function Write({ email }) {
     const [inputValue1, setInputValue1] = useState("");
     const [inputValue2, setInputValue2] = useState("");
+    const [amount, setAmount] = useState("");
     const [products, setProducts] = useState([]);
+    const date = Date();
 
     const addProduct = () => {
-        setProducts([...products, { productName: inputValue1, productPrice: inputValue2 }]);
+        setProducts([...products, { productName: inputValue1, productPrice: inputValue2, productAmount: amount }]);
         setInputValue1("");
         setInputValue2("");
+        setAmount("");
     };
 
     const removeProduct = (index) => { 
@@ -25,7 +28,7 @@ function Write({ email }) {
 
         const promises = products.map(product => {
             const newDocRef = push(productsRef);
-            return set(newDocRef, { ...product, email });
+            return set(newDocRef, { ...product, email, date});
         });
 
         Promise.all(promises)
@@ -39,7 +42,8 @@ function Write({ email }) {
     const calculateTotalPrice = () => {
         const sum = products.reduce((acc, item) => {
             const price = parseFloat(item.productPrice.replace(',', '.'));
-            return acc + price;
+            const amount = parseFloat(item.productAmount.replace(',', '.'));
+            return acc + (price * amount);
         }, 0);
         Alert.alert (
             "Summe",  // Titel des Alerts
@@ -71,6 +75,14 @@ function Write({ email }) {
                         placeholderTextColor="#fff"
                     />
                 </View>
+                <View style={styles.textInput2View}>
+                    <TextInput 
+                        value={amount}
+                        onChangeText={(text) => setAmount(text)}
+                        placeholder="Product Amount"
+                        placeholderTextColor="#fff"
+                    />
+                </View>
             </View>  
             <View style={styles.addProductView}>
                 <TouchableOpacity style={styles.addButtonIcon} title="Add Product" onPress={addProduct} >
@@ -82,7 +94,7 @@ function Write({ email }) {
                     data={products}
                     renderItem={({ item, index }) => (
                         <View style={styles.productItem}>
-                            <Text>{item.productName} - {item.productPrice}</Text>
+                            <Text>{item.productName} - {item.productPrice}€ - {item.productAmount}ME </Text>
                             <TouchableOpacity onPress={() => removeProduct(index)} style={styles.deleteIcon}>
                                 <MaterialCommunityIcons name="delete-forever" size={30} color="black" />
                             </TouchableOpacity>

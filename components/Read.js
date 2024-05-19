@@ -3,6 +3,7 @@ import { View, Text, TextInput, Button, ScrollView, TouchableOpacity, StyleSheet
 import { getDatabase, ref, set, get, remove } from 'firebase/database';
 import app from "../firebaseConfig";
 import { MaterialIcons, Entypo, MaterialCommunityIcons } from '@expo/vector-icons'; // Importieren der Icons
+import ReadProduct from './ReadProduct';
 
 function Read() {
     const [productArray, setProductArray] = useState([]);
@@ -11,6 +12,9 @@ function Read() {
     const [editProductId, setEditProductId] = useState(null);
     const [editProductName, setEditProductName] = useState('');
     const [editProductPrice, setEditProductPrice] = useState('');
+    const [editProductAmount, setEditProductAmount] = useState('');
+    const [editProductDate, setEditProductDate] = useState('');
+    const [email, editProductEmail] = useState('');
 
     const fetchData = async () => {
         
@@ -19,11 +23,13 @@ function Read() {
         const snapshot = await get(dbRef);
         if (snapshot.exists()) {
             setProductArray(Object.values(snapshot.val()).map((product, index) => ({ ...product, id: Object.keys(snapshot.val())[index] })));
+            productArray.filter(p => productArray.some(p));
         } else {
-            alert("Error: No data found");
+            alert("Error: No data found"); 
         }
         setTimeout(() => setButtonPressed(false), 0); 
     };
+
 
 
     useEffect(() => {
@@ -34,6 +40,9 @@ function Read() {
         setEditProductId(product.id);
         setEditProductName(product.productName);
         setEditProductPrice(product.productPrice);
+        setEditProductAmount(product.productAmount);
+        setEditProductDate(product.productDate);
+        editProductEmail(product.email);
     };
 
     const saveEdit = async () => {
@@ -41,7 +50,10 @@ function Read() {
         const productRef = ref(db, `realtime/Products/${editProductId}`);
         await set(productRef, {
             productName: editProductName,
-            productPrice: editProductPrice
+            productPrice: editProductPrice,
+            productAmount: editProductAmount,
+            productDate: editProductDate,
+            email: editProductEmail,
         });
         setEditProductId(null);
         fetchData(); // Refresh data
@@ -72,29 +84,10 @@ function Read() {
     return (
         <View>
             <ScrollView style={styles.container}>
+                
                 {productArray.map((item, index) => (
-                    <View key={index} style={styles.productCard}>
-                        {/* Der TouchableOpacity hier ist ausschließlich für das Icon. */}
-                        <TouchableOpacity style={[styles.editIcon, editButtonPressed ? styles.editButtonActive : styles.editButtonInactive]} onPress={() => startEdit(item)}>
-                            <Entypo name="edit" size={30} color="black" />
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => deleteProduct(item.id)} style={styles.deleteIcon}>
-                            <MaterialCommunityIcons name="delete-forever" size={30} color="black" />
-                        </TouchableOpacity>
-                        {editProductId === item.id ? (
-                            <View>
-                                <TextInput style={styles.productName} value={editProductName} onChangeText={setEditProductName} />
-                                <TextInput style={styles.productPrice} value={editProductPrice} onChangeText={setEditProductPrice} />
-                                <TouchableOpacity style={styles.doneIcon} title="Gesamtsumme berechnen" onPress={saveEdit} >
-                                    <MaterialIcons name="done-outline" size={30} color="#000" />
-                                </TouchableOpacity>
-                            </View>
-                        ) : (
-                            <View>
-                                <Text style={styles.productName}>{item.productName}</Text>
-                                <Text style={styles.productPrice}>{item.productPrice}</Text>
-                            </View>
-                        )}
+                    <View>
+                        <ReadProduct myItem={item}/>
                     </View>
                 ))}
             </ScrollView>

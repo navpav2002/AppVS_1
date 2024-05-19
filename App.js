@@ -17,6 +17,7 @@ import GlassButton from './components/GlassButton';
 import { MenuProvider } from 'react-native-popup-menu';
 
 
+
 const app = initializeApp(firebaseConfig);
 
 const Stack = createNativeStackNavigator();
@@ -315,7 +316,8 @@ export default App = () => {
       ) : (
         <Stack.Navigator>
           <Stack.Screen 
-            name="Login"
+            name="Shopping Cart"
+            /*
             options={{
               headerStyle: {
                 backgroundColor: '#21ABA5', // Setzt die Hintergrundfarbe der Kopfzeile
@@ -328,7 +330,7 @@ export default App = () => {
                 fontSize: 34, // Setzt die Schriftgröße
               },
             }}
-/*
+*/
             options={{
               headerTransparent: true, // Macht den Header transparent
               headerTitleAlign: 'center',
@@ -338,7 +340,7 @@ export default App = () => {
                 fontSize: 34,
               },
             }}
-*/
+
           >
             {(props) => (
               <AuthScreen
