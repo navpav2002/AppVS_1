@@ -17,7 +17,6 @@ import GlassButton from './components/GlassButton';
 import { MenuProvider } from 'react-native-popup-menu';
 
 
-
 const app = initializeApp(firebaseConfig);
 
 const Stack = createNativeStackNavigator();

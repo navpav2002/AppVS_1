@@ -1,39 +1,54 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { getDatabase, ref, set, get, remove } from 'firebase/database';
+import { View, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { getDatabase, ref, get, remove, query, orderByChild, equalTo, onValue, set } from 'firebase/database';
 import app from "../firebaseConfig";
-import { MaterialIcons, Entypo, MaterialCommunityIcons } from '@expo/vector-icons'; // Importieren der Icons
+import { MaterialIcons } from '@expo/vector-icons';
 import ReadProduct from './ReadProduct';
 
-function Read() {
+const Read = () => {
     const [productArray, setProductArray] = useState([]);
-    const [buttonPressed, setButtonPressed] = useState(false);
     const [editButtonPressed, setEditButtonPressed] = useState(false);
     const [editProductId, setEditProductId] = useState(null);
     const [editProductName, setEditProductName] = useState('');
     const [editProductPrice, setEditProductPrice] = useState('');
     const [editProductAmount, setEditProductAmount] = useState('');
     const [editProductDate, setEditProductDate] = useState('');
-    const [email, editProductEmail] = useState('');
-
-    const fetchData = async () => {
-        
-        const db = getDatabase(app);
-        const dbRef = ref(db, "realtime/Products");
-        const snapshot = await get(dbRef);
-        if (snapshot.exists()) {
-            setProductArray(Object.values(snapshot.val()).map((product, index) => ({ ...product, id: Object.keys(snapshot.val())[index] })));
-            productArray.filter(p => productArray.some(p));
-        } else {
-            alert("Error: No data found"); 
-        }
-        setTimeout(() => setButtonPressed(false), 0); 
-    };
-
-
+    const [email, setEditProductEmail] = useState('');
 
     useEffect(() => {
-        fetchData();
+        const db = getDatabase(app);
+        const dbRef = ref(db, "realtime/Products");
+
+        const unsubscribe = onValue(dbRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const products = snapshot.val();
+                const productMap = {};
+
+                Object.keys(products).forEach(productId => {
+                    const product = products[productId];
+                    if (!productMap[product.productName]) {
+                        productMap[product.productName] = {
+                            id: productId,
+                            productName: product.productName,
+                            productPrice: product.productPrice,
+                            productAmount: product.productAmount,
+                            productDate: product.date,
+                            users: []
+                        };
+                    }
+                    productMap[product.productName].users.push({
+                        email: product.email,
+                        amount: product.productAmount,
+                        price: product.productPrice,
+                        date: product.date
+                    });
+                });
+
+                setProductArray(Object.values(productMap));
+            }
+        });
+
+        return () => unsubscribe(); // Clean up the listener on unmount
     }, []);
 
     const startEdit = (product) => {
@@ -42,64 +57,88 @@ function Read() {
         setEditProductPrice(product.productPrice);
         setEditProductAmount(product.productAmount);
         setEditProductDate(product.productDate);
-        editProductEmail(product.email);
+        setEditProductEmail(product.email);
+        setEditButtonPressed(true); // Set the edit button pressed state to true
     };
 
-    const saveEdit = async () => {
+    const saveEditProp = async () => {
         const db = getDatabase(app);
         const productRef = ref(db, `realtime/Products/${editProductId}`);
         await set(productRef, {
             productName: editProductName,
             productPrice: editProductPrice,
             productAmount: editProductAmount,
-            productDate: editProductDate,
-            email: editProductEmail,
+            date: editProductDate,
+            email: email,
         });
         setEditProductId(null);
-        fetchData(); // Refresh data
+        setEditButtonPressed(false); // Reset the edit button pressed state
+    };
+
+    const deleteProductProp = async (productName) => {
+        const db = getDatabase(app);
+        const dbRef = ref(db, "realtime/Products");
+        const q = query(dbRef, orderByChild('productName'), equalTo(productName));
+        const snapshot = await get(q);
+        if (snapshot.exists()) {
+            const updates = {};
+            snapshot.forEach(childSnapshot => {
+                updates[childSnapshot.key] = null;
+            });
+            await set(dbRef, updates);
+            // alert("Product deleted successfully!");
+            // Remove the product from the local state
+            setProductArray(prevProducts => prevProducts.filter(product => product.productName !== productName));
+        }
     };
 
     const calculateTotalPrice = () => {
-        const sum = productArray.reduce((acc, item) => {
-            const price = parseFloat(item.productPrice.replace(',', '.'));
-            return acc + price;
+    const totalSum = productArray.reduce((acc, product) => {
+        const productSum = product.users.reduce((userAcc, user) => {
+            return userAcc + (parseFloat(user.price) * parseFloat(user.amount));
         }, 0);
-        Alert.alert (
-            "Summe",  // Titel des Alerts
-            `Die Gesamtsumme der Produktpreise beträgt: ${sum.toFixed(2)}€`,  // Nachricht
-            [
-                { text: "OK" }  // Button
-            ]
-        );
-    };
+        return acc + productSum;
+    }, 0);
 
-    const deleteProduct = async (ProductId) => {
-        const db = getDatabase(app);
-        const productRef = ref(db, `realtime/Products/${ProductId}`);
-        await remove(productRef);
-        // window.location.reload();
-        fetchData();
-    }
+    Alert.alert(
+        "Summe",  // Titel des Alerts
+        `Die Gesamtsumme der Produktpreise beträgt: ${totalSum.toFixed(2)}€`,  // Nachricht
+        [
+            { text: "OK" }  // Button
+        ]
+    );
+};
+
 
     return (
         <View>
             <ScrollView style={styles.container}>
-                
                 {productArray.map((item, index) => (
-                    <View>
-                        <ReadProduct myItem={item}/>
+                    <View key={index}>
+                        <ReadProduct
+                            item={item}
+                            editButtonPressed={editButtonPressed}
+                            editProductId={editProductId}
+                            editProductName={editProductName}
+                            editProductPrice={editProductPrice}
+                            editProductAmount={editProductAmount}
+                            editProductDate={editProductDate}
+                            startEdit={startEdit}
+                            saveEditProp={saveEditProp}
+                            deleteProductProp={deleteProductProp}
+                            productId={item.id}
+                        />
                     </View>
                 ))}
             </ScrollView>
-            <View style={{alignItems: 'center', justifyContent: 'center'}}>
-                <TouchableOpacity style={styles.buttonSumProducts} title="Gesamtsumme berechnen" onPress={calculateTotalPrice} >
+            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+                <TouchableOpacity style={styles.buttonSumProducts} onPress={calculateTotalPrice}>
                     <MaterialIcons name="attach-money" size={30} color={'#fff'} />
                 </TouchableOpacity>
             </View>
         </View>
     );
-}    
-
+};
 
 const styles = StyleSheet.create({
     container: {
