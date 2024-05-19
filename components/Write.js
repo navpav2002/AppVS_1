@@ -4,6 +4,7 @@ import { getDatabase, ref, set, push } from 'firebase/database';
 import { TextInput, View, Button, StyleSheet, FlatList, Text, TouchableOpacity, ScrollView, Alert } from 'react-native'; 
 import { FontAwesome6, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { useFonts } from 'expo-font';
+
 function Write({ email }) {
     const [inputValue1, setInputValue1] = useState("");
     const [inputValue2, setInputValue2] = useState("");
@@ -33,7 +34,7 @@ function Write({ email }) {
 
         Promise.all(promises)
         .then(() => {
-            alert("All products saved successfully");
+            Alert.alert("Success", "All products saved successfully!");
             setProducts([]);
         }).catch((error) => {
             alert("Error: " + error.message); 
