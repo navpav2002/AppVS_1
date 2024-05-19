@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, ScrollView, Image, ImageBackground } from 'react-native';
+import { View, Text, TextInput, StyleSheet, ImageBackground, TouchableOpacity, Modal, TouchableWithoutFeedback } from 'react-native';
 import { initializeApp } from '@firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from '@firebase/auth';
 import Write from './components/Write';
@@ -12,10 +12,9 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons, Entypo } from '@expo/vector-icons';
 import RecentProducts from './components/RecentProducts';
 import LineChartComponent from './components/LineChartComponent';
-import { AntDesign } from '@expo/vector-icons';
 import { MaterialIcons } from '@expo/vector-icons';
 import GlassButton from './components/GlassButton';
-
+import { MenuProvider } from 'react-native-popup-menu';
 
 
 const app = initializeApp(firebaseConfig);
@@ -45,12 +44,11 @@ const AuthScreen = ({ email, setEmail, password, setPassword, isLogin, setIsLogi
           secureTextEntry
         />
         <View style={styles.buttonContainer}>
-          <GlassButton title={isLogin ? 'Sign In' : 'Sign Up'} onPress={handleAuthentication} color="#3498db" />
-          
+          <GlassButton title={isLogin ? 'Sign In' : 'Sign Up'} onPress={handleAuthentication} color="#3498db" fontFamily={'Kalam-Bold'} />
         </View>
         <View style={styles.bottomContainer}>
           <Text style={styles.toggleText} onPress={() => setIsLogin(!isLogin)}>
-            {isLogin ? 'Need an account? Sign Up' : 'Already have an account? Sign In'}
+            {isLogin ? 'Need an account?' : 'Already have an account?'}
           </Text>
         </View>
       </View>
@@ -70,13 +68,36 @@ const AuthenticatedScreen = ({ user, handleAuthentication, navigation, email }) 
           <View style={styles.authContainer2}>
             <Text style={styles.title}>Welcome</Text>
             <Text style={styles.emailText}>{user.email}</Text>
-            <Button title="Logout" onPress={handleAuthentication} color="#e74c3c" />
             <View style={{justifyContent: 'center', alignItems: 'center'}}>
               <RecentProducts email={user.email}/>
             </View>
           </View>
         </View>
       </View>
+    </View>
+  );
+};
+
+const ProductListScreen = () => {
+  return (
+    <View style={styles.container2}>
+      <Read/>
+    </View>
+  );
+};
+
+const NewListScreen = ({email}) => {
+  return (
+    <View style={styles.container2}>
+      <Write email={email}/>
+    </View>
+  );
+};
+
+const StatisticsScreen =({email}) => {
+  return (
+    <View style={styles.container2}>
+      <LineChartComponent email={email}/>
     </View>
   );
 };
@@ -138,6 +159,7 @@ export default App = () => {
 
   // Render UI based on user authentication status
   return (
+    <MenuProvider>
     <NavigationContainer>
       {user ? (
         <Tab.Navigator>
@@ -173,6 +195,8 @@ export default App = () => {
                 fontFamily: 'Kalam-Regular',
                 color: '#fff',
               },
+              headerRight: () => <HeaderProfileButton handleAuthentication={handleAuthentication}/>
+              
             }}
           >
             {(props) => <AuthenticatedScreen {...props} email={email} user={user} handleAuthentication={handleAuthentication} />}
@@ -298,11 +322,23 @@ export default App = () => {
               },
               headerTitleAlign: 'center', // Zentriert den Titel
               headerTintColor: '#fff', // Setzt die Farbe des Titels
+              headerTransparent: true,
               headerTitleStyle: {
                 fontFamily: 'Kalam-Bold', // Setzt die Schriftfamilie
                 fontSize: 34, // Setzt die Schriftgröße
               },
             }}
+/*
+            options={{
+              headerTransparent: true, // Macht den Header transparent
+              headerTitleAlign: 'center',
+              headerTintColor: '#fff',
+              headerTitleStyle: {
+                fontFamily: 'Kalam-Bold',
+                fontSize: 34,
+              },
+            }}
+*/
           >
             {(props) => (
               <AuthScreen
@@ -320,32 +356,59 @@ export default App = () => {
         </Stack.Navigator>
       )}
     </NavigationContainer>
+    </MenuProvider>
   );
 }
 
-const ProductListScreen = () => {
+const HeaderProfileButton = ({handleAuthentication}) => {
+  const [menuVisible, setMenuVisible] = useState(false);
+
+  const handleMenuToggle = () => {
+    setMenuVisible(!menuVisible);
+  };
+
+  const handleMenuOptionSelect = (option) => {
+    setMenuVisible(false);
+    alert(option);
+  };
+
   return (
-    <View style={styles.container2}>
-      <Read/>
+    <View style={{ paddingRight: 10 }}>
+      <TouchableOpacity onPress={handleMenuToggle}>
+        <MaterialCommunityIcons name="account-circle" size={28} color="black" />
+      </TouchableOpacity>
+      <Modal
+        transparent={true}
+        visible={menuVisible}
+        animationType="fade"
+        onRequestClose={() => setMenuVisible(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.menu}>
+              <TouchableOpacity style={styles.menuOption} onPress={() => handleMenuOptionSelect('Profile')}>
+                <Text>Profile</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.menuOption} onPress={() => handleMenuOptionSelect('Settings')}>
+                <Text>Settings</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.menuOption} onPress={() => handleMenuOptionSelect('Change Theme')}>
+                <Text>Change Theme</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.menuOption} onPress={() => {
+                setMenuVisible(false);
+                handleAuthentication();
+              }}>
+                <Text>Logout</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </View>
   );
 };
 
-const NewListScreen = ({email}) => {
-  return (
-    <View style={styles.container2}>
-      <Write email={email}/>
-    </View>
-  );
-};
-
-const StatisticsScreen =({email}) => {
-  return (
-    <View style={styles.container2}>
-      <LineChartComponent email={email}/>
-    </View>
-  );
-};
 
 const styles = StyleSheet.create({
   container: {
@@ -394,6 +457,9 @@ const styles = StyleSheet.create({
     fontSize: 24,
     marginBottom: 16,
     textAlign: 'center',
+    fontFamily: 'Kalam-Bold',
+    color: '#fff',
+    width: 200,
   },
   input: {
     height: 40,
@@ -416,9 +482,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   toggleText: {
-    color: '#000',
+    color: '#fff',
     textAlign: 'center',
     fontSize: 16,
+    fontFamily: 'Kalam-Bold',
+    width: 200,
   },
   bottomContainer: {
     marginTop: 20,
@@ -427,5 +495,25 @@ const styles = StyleSheet.create({
     fontSize: 18,
     textAlign: 'center',
     marginBottom: 20,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    alignItems: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    paddingTop: 50, // Platz für das Symbol oben
+  },
+  menu: {
+    backgroundColor: 'white',
+    borderRadius: 5,
+    padding: 10,
+    elevation: 5,
+    width: 200,
+    marginRight: 10, // Platz zum Rand des Bildschirms
+  },
+  menuOption: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
   },
 });

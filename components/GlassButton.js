@@ -2,6 +2,7 @@ import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 
 const GlassButton = ({ onPress, title }) => {
+
   return (
     <TouchableOpacity onPress={onPress} style={styles.glassButton}>
       <Text style={styles.glassButtonText}>{title}</Text>
@@ -23,7 +24,6 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.6)', // Stärkere Umrandung
   },
   glassButtonText: {
-    
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
@@ -32,6 +32,7 @@ const styles = StyleSheet.create({
     padding: 0, // Keine zusätzliche Polsterung
     margin: 0, // Kein zusätzlicher Rand
     borderWidth: 0, // Keine Umrandung
+    width: 100,
   },
 });
 
