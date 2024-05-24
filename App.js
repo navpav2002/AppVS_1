@@ -15,6 +15,7 @@ import LineChartComponent from './components/LineChartComponent';
 import { MaterialIcons } from '@expo/vector-icons';
 import GlassButton from './components/GlassButton';
 import { MenuProvider } from 'react-native-popup-menu';
+import ReadUser from './components/ReadUser';
 
 
 const app = initializeApp(firebaseConfig);
@@ -78,12 +79,22 @@ const AuthenticatedScreen = ({ user, handleAuthentication, navigation, email }) 
   );
 };
 
-const ProductListScreen = () => {
+const ProductListScreen = ({email}) => {
+ console.log(email)
+ // let isAdmin = email === 'admin@admin.com';
   return (
-    <View style={styles.container2}>
-      <Read/>
+    
+  email === 'admin@admin.com'
+  ? (
+    <View style={styles.container2} >
+      <Read email={email} />
     </View>
-  );
+  )
+  : (
+    <View style={styles.container2}>
+      <ReadUser email={email}/>
+    </View>
+  ));
 };
 
 const NewListScreen = ({email}) => {
@@ -156,7 +167,6 @@ export default App = () => {
       console.error('Authentication error:', error.message);
     }
   };
-
   // Render UI based on user authentication status
   return (
     <MenuProvider>
@@ -278,7 +288,8 @@ export default App = () => {
 
           <Tab.Screen 
             name="Product List" 
-            component={ProductListScreen} 
+            //component={ProductListScreen} 
+           // email={email}
             options={{
               headerStyle: {
                 backgroundColor: '#21ABA5', // Setzt die Hintergrundfarbe der Kopfzeile
@@ -310,7 +321,9 @@ export default App = () => {
                 height: 70,
               },
             }}
-          />
+          >
+            {(props) => <ProductListScreen {...props} email={email} user={user} />}
+          </Tab.Screen>
         </Tab.Navigator>
       ) : (
         <Stack.Navigator>

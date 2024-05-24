@@ -68,6 +68,7 @@ function Write({ email }) {
                         placeholderFontFamily= 'Kalam-Regular'
                     /> 
                 </View>
+
                 <View style={styles.textInput2View}>
                     <TextInput 
                         value={inputValue2}
@@ -76,6 +77,7 @@ function Write({ email }) {
                         placeholderTextColor="#fff"
                     />
                 </View>
+
                 <View style={styles.textInput2View}>
                     <TextInput 
                         value={amount}
