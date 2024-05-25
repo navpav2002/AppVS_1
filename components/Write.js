@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import app from "../firebaseConfig";
 import { getDatabase, ref, set, push } from 'firebase/database';
-import { TextInput, View, Button, StyleSheet, FlatList, Text, TouchableOpacity, ScrollView, Alert } from 'react-native'; 
+import { TextInput, View, Button, StyleSheet, FlatList, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { FontAwesome6, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { useFonts } from 'expo-font';
 
-function Write({ email }) {
+function Write({ email, theme }) {
     const [inputValue1, setInputValue1] = useState("");
     const [inputValue2, setInputValue2] = useState("");
     const [amount, setAmount] = useState("");
@@ -19,7 +19,7 @@ function Write({ email }) {
         setAmount("");
     };
 
-    const removeProduct = (index) => { 
+    const removeProduct = (index) => {
         setProducts(products.filter((_, i) => i !== index)); // (element, index, array) => Condition
     };
 
@@ -29,24 +29,25 @@ function Write({ email }) {
 
         const promises = products.map(product => {
             const newDocRef = push(productsRef);
-            return set(newDocRef, { ...product, email, date});
+            return set(newDocRef, { ...product, email, date });
         });
 
         Promise.all(promises)
-        .then(() => {
-            Alert.alert("Success", "All products saved successfully!");
-            setProducts([]);
-        }).catch((error) => {
-            alert("Error: " + error.message); 
-        });
+            .then(() => {
+                Alert.alert("Success", "All products saved successfully!");
+                setProducts([]);
+            }).catch((error) => {
+                alert("Error: " + error.message);
+            });
     };
+
     const calculateTotalPrice = () => {
         const sum = products.reduce((acc, item) => {
             const price = parseFloat(item.productPrice.replace(',', '.'));
             const amount = parseFloat(item.productAmount.replace(',', '.'));
             return acc + (price * amount);
         }, 0);
-        Alert.alert (
+        Alert.alert(
             "Summe",  // Titel des Alerts
             `Die Gesamtsumme der Produktpreise beträgt: ${sum.toFixed(2)}€`,  // Nachricht
             [
@@ -55,44 +56,50 @@ function Write({ email }) {
         );
     };
 
+    const getBackgroundColor = () => {
+        return theme === 'light' ? '#21ABA5' : '#333'; // Wechselt die Hintergrundfarbe je nach Theme
+    };
+
     return (
         <View style={styles.newListView}>
             <View style={styles.addProductInputs}>
-                <View style={styles.textInput1View}>
-                    <TextInput 
+                <View style={[styles.textInput1View, { backgroundColor: getBackgroundColor() }]}>
+                    <TextInput
                         value={inputValue1}
-                        style={styles.textInput1}
                         onChangeText={(text) => setInputValue1(text)}
                         placeholder="Product Name"
                         placeholderTextColor="#fff"
-                        placeholderFontFamily= 'Kalam-Regular'
-                    /> 
+                        placeholderFontFamily='Kalam-Regular'
+                        style={{ color: '#fff' }}
+                    />
                 </View>
 
-                <View style={styles.textInput2View}>
-                    <TextInput 
+                <View style={[styles.textInput2View, { backgroundColor: getBackgroundColor() }]}>
+                    <TextInput
                         value={inputValue2}
                         onChangeText={(text) => setInputValue2(text)}
                         placeholder="Product Price"
                         placeholderTextColor="#fff"
+                        style={{ color: '#fff' }}
                     />
                 </View>
 
-                <View style={styles.textInput2View}>
-                    <TextInput 
+                <View style={[styles.textInput2View, { backgroundColor: getBackgroundColor() }]}>
+                    <TextInput
                         value={amount}
                         onChangeText={(text) => setAmount(text)}
                         placeholder="Product Amount"
                         placeholderTextColor="#fff"
+                        style={{ color: '#fff' }}
                     />
                 </View>
-            </View>  
+            </View>
             <View style={styles.addProductView}>
                 <TouchableOpacity style={styles.addButtonIcon} title="Add Product" onPress={addProduct} >
                     <FontAwesome6 name="add" size={30} color="#fff" />
                 </TouchableOpacity>
             </View>
-            <View style={styles.container}>
+            <View style={[styles.container, { backgroundColor: getBackgroundColor() }]}>
                 <FlatList
                     data={products}
                     renderItem={({ item, index }) => (
@@ -113,8 +120,7 @@ function Write({ email }) {
                 <TouchableOpacity style={styles.sumButton} title="Gesamtsumme berechnen" onPress={calculateTotalPrice} >
                     <MaterialIcons name="attach-money" size={30} color={"#fff"} />
                 </TouchableOpacity>
-            </View> 
-            
+            </View>
         </View>
     );
 }
@@ -131,7 +137,6 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
     textInput1View: {
-        backgroundColor: '#21ABA5',
         borderColor: '#000000',
         borderRadius: 10,
         borderWidth: 1,
@@ -144,7 +149,6 @@ const styles = StyleSheet.create({
         borderColor: '#fff',
     },
     textInput2View: {
-        backgroundColor: '#21ABA5',
         borderRadius: 10,
         borderWidth: 1,
         marginBottom: 10,
@@ -181,7 +185,7 @@ const styles = StyleSheet.create({
         borderColor: '#fff',
         width: 60,
         height: 60,
-        backgroundColor: '#6420AA',
+        backgroundColor: '#e60b75',
         shadowColor: '#000', // Farbe des Schattens
         shadowOffset: { width: 0, height: 4 }, // Versatz des Schattens
         shadowOpacity: 0.5, // Deckkraft des Schattens
@@ -198,7 +202,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         width: 60,
         height: 60,
-        backgroundColor: '#6420AA',
+        backgroundColor: '#e60b75',
         shadowColor: '#000', // Farbe des Schattens
         shadowOffset: { width: 0, height: 4 }, // Versatz des Schattens
         shadowOpacity: 0.5, // Deckkraft des Schattens
@@ -242,7 +246,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         width: 60,
         height: 60,
-        backgroundColor: '#6420AA',
+        backgroundColor: '#e60b75',
         shadowColor: '#000', // Farbe des Schattens
         shadowOffset: { width: 0, height: 4 }, // Versatz des Schattens
         shadowOpacity: 0.5, // Deckkraft des Schattens

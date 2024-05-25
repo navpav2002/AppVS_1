@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, ImageBackground, TouchableOpacity, Modal, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, TextInput, StyleSheet, ImageBackground, TouchableOpacity, Image, Modal, TouchableWithoutFeedback } from 'react-native';
 import { initializeApp } from '@firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from '@firebase/auth';
 import Write from './components/Write';
@@ -16,6 +16,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import GlassButton from './components/GlassButton';
 import { MenuProvider } from 'react-native-popup-menu';
 import ReadUser from './components/ReadUser';
+import LastOrder from './components/LastOrder';
 
 
 const app = initializeApp(firebaseConfig);
@@ -26,52 +27,58 @@ const Stack = createNativeStackNavigator();
 const AuthScreen = ({ email, setEmail, password, setPassword, isLogin, setIsLogin, handleAuthentication }) => {
   return (
     <ImageBackground source={require('./assets/Glassmorphism2.jpg')} style={styles.backgroundImage} >
-    <View style={styles.container}>
-      <CustomImage/>
-      <View style={styles.authContainer}>
-        <Text style={styles.title}>{isLogin ? 'Sign In' : 'Sign Up'}</Text>
-        <TextInput
-          style={styles.authInput}
-          value={email}
-          onChangeText={setEmail}
-          placeholder="Email"
-          autoCapitalize="none"
-        />
-        <TextInput
-          style={styles.authInput}
-          value={password}
-          onChangeText={setPassword}
-          placeholder="Password"
-          secureTextEntry
-        />
-        <View style={styles.buttonContainer}>
-          <GlassButton title={isLogin ? 'Sign In' : 'Sign Up'} onPress={handleAuthentication} color="#3498db" fontFamily={'Kalam-Bold'} />
-        </View>
-        <View style={styles.bottomContainer}>
-          <Text style={styles.toggleText} onPress={() => setIsLogin(!isLogin)}>
-            {isLogin ? 'Need an account?' : 'Already have an account?'}
-          </Text>
+      <View style={styles.container}>
+        <CustomImage />
+        <View style={styles.authContainer}>
+          <Text style={styles.title}>{isLogin ? 'Sign In' : 'Sign Up'}</Text>
+          <TextInput
+            style={styles.authInput}
+            value={email}
+            onChangeText={setEmail}
+            placeholder="Email"
+            autoCapitalize="none"
+          />
+          <TextInput
+            style={styles.authInput}
+            value={password}
+            onChangeText={setPassword}
+            placeholder="Password"
+            secureTextEntry
+          />
+          <View style={styles.buttonContainer}>
+            <GlassButton title={isLogin ? 'Sign In' : 'Sign Up'} onPress={handleAuthentication} color="#3498db" fontFamily={'Kalam-Bold'} />
+          </View>
+          <View style={styles.bottomContainer}>
+            <Text style={styles.toggleText} onPress={() => setIsLogin(!isLogin)}>
+              {isLogin ? 'Need an account?' : 'Already have an account?'}
+            </Text>
+          </View>
         </View>
       </View>
-    </View>
     </ImageBackground>
   );
 }
 
-
 // AuthenticatedScreen
-const AuthenticatedScreen = ({ user, handleAuthentication, navigation, email }) => {
+const AuthenticatedScreen = ({ user, handleAuthentication, navigation, email, theme }) => {
+  const [flip, setFlip] = useState(true);
+
+  const switchColors = () => {
+    setFlip(!flip);
+    console.log(flip);
+  }
 
   return (
-    <View style={styles.container2}>
+    <View style={theme === 'light' ? styles.container2 : styles.containerSwitched2}>
       <View>
         <View>
           <View style={styles.authContainer2}>
             <Text style={styles.title}>Welcome</Text>
             <Text style={styles.emailText}>{user.email}</Text>
-            <View style={{justifyContent: 'center', alignItems: 'center'}}>
-              <RecentProducts email={user.email}/>
+            <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+              <RecentProducts email={user.email} />
             </View>
+            <LastOrder email={user.email} />
           </View>
         </View>
       </View>
@@ -79,36 +86,34 @@ const AuthenticatedScreen = ({ user, handleAuthentication, navigation, email }) 
   );
 };
 
-const ProductListScreen = ({email}) => {
- console.log(email)
- // let isAdmin = email === 'admin@admin.com';
+const ProductListScreen = ({ email, theme }) => {
   return (
-    
-  email === 'admin@admin.com'
-  ? (
-    <View style={styles.container2} >
-      <Read email={email} />
-    </View>
-  )
-  : (
-    <View style={styles.container2}>
-      <ReadUser email={email}/>
-    </View>
-  ));
+    email === 'admin@admin.com'
+      ? (
+        <View style={theme === 'light' ? styles.container2 : styles.containerSwitched2}>
+          <Read email={email} theme={theme} />
+        </View>
+      )
+      : (
+        <View style={theme === 'light' ? styles.container2 : styles.containerSwitched2}>
+          <ReadUser email={email} theme={theme} />
+        </View>
+      )
+  );
 };
 
-const NewListScreen = ({email}) => {
+const NewListScreen = ({ email, theme }) => {
   return (
-    <View style={styles.container2}>
-      <Write email={email}/>
+    <View style={theme === 'light' ? styles.container2 : styles.containerSwitched2}>
+      <Write email={email} theme={theme} />
     </View>
   );
 };
 
-const StatisticsScreen =({email}) => {
+const StatisticsScreen = ({ email, theme }) => {
   return (
-    <View style={styles.container2}>
-      <LineChartComponent email={email}/>
+    <View style={theme === 'light' ? styles.container2 : styles.containerSwitched3}>
+      <LineChartComponent email={email} theme={theme} />
     </View>
   );
 };
@@ -116,11 +121,11 @@ const StatisticsScreen =({email}) => {
 const Tab = createBottomTabNavigator();
 // App
 export default App = () => {
-  // State hooks for managing email, password, user information, and login mode
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [user, setUser] = useState(null); // Track user authentication state
   const [isLogin, setIsLogin] = useState(true);
+  const [theme, setTheme] = useState('light'); // State for theme
 
   let [fontsLoaded] = useFonts({
     'PoetsenOne-Regular': require('./assets/fonts/PoetsenOne-Regular.ttf'),
@@ -128,11 +133,11 @@ export default App = () => {
     'Kalam-Bold': require('./assets/fonts/Kalam-Bold.ttf'),
     'Kalam-Light': require('./assets/fonts/Kalam-Light.ttf'),
     'Kalam-Regular': require('./assets/fonts/Kalam-Regular.ttf'),
-  })
+  });
+
   // Setting up Firebase authentication
   const auth = getAuth(app);
 
-  // useEffect Hilft auf Änderungen zu reagieren (wird ausgeführt, wenn ein Benutzer sich anmeldet, abmeldet)
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {      // auf Änderungen bei auth achten
       setUser(user);  // wenn sich etwas ändert, soll setUser(user) aufgerufen werden, um den neuen Benutzer zu aktualisieren.
@@ -147,7 +152,7 @@ export default App = () => {
       if (user) { // überprüft, ob der Benutzer bereits angemeldet ist. Wenn ja, meldet es den Benutzer ab.
         console.log('User logged out successfully!');
         await signOut(auth);
-      } 
+      }
       else // Wenn der Benutzer nicht angemeldet ist, führt es den Code in diesem Block aus
       {
         // Login user
@@ -155,7 +160,7 @@ export default App = () => {
           // Sign in
           await signInWithEmailAndPassword(auth, email, password);
           console.log('User signed in successfully!');
-        } 
+        }
         else // Wenn der Benutzer nicht versucht, sich anzumelden (was bedeutet, dass er versucht, sich zu registrieren), versucht es, einen neuen Benutzer zu erstellen.
         {
           // Register new user
@@ -167,223 +172,216 @@ export default App = () => {
       console.error('Authentication error:', error.message);
     }
   };
-  // Render UI based on user authentication status
+
+  const switchColors = () => {
+    setTheme(theme === 'light' ? 'dark' : 'light');
+  };
+
   return (
     <MenuProvider>
-    <NavigationContainer>
-      {user ? (
-        <Tab.Navigator>
-          <Tab.Screen 
-            name="Home"
-            options={{
-              headerStyle: {
-                backgroundColor: '#21ABA5', // Setzt die Hintergrundfarbe der Kopfzeile
-                borderBottomWidth: 4,  // Setzt eine Linie unter dem Header
-                borderBottomColor: 'white'
-              },
-              headerTitleAlign: 'center', // Zentriert den Titel
-              headerTintColor: '#fff', // Setzt die Farbe des Titels
-              headerTitleStyle: {
-                fontFamily: 'Kalam-Bold', // Setzt die Schriftfamilie
-                fontSize: 34, // Setzt die Schriftgröße
-              },
-              tabBarLabel: 'Home',
-              tabBarActiveTintColor: '#e84c3c', // Farbe des Icons und Texts, wenn aktiv
-              tabBarInactiveTintColor: '#fff',
-              tabBarStyle: {
-                backgroundColor: '#21ABA5',
-                height: 70,
-              },
-              tabBarIcon: ({ focused, color, size }) => (
-                <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
-                  {focused && <View style={{ height: 4, width: '100%', backgroundColor: '#e84c3c' }} />}
-                  <MaterialCommunityIcons name="home" color={color} size={size * 1.5} />
-                </View>
-              ),
-              tabBarLabelStyle: {
-                fontSize: 20, // Setzt die Schriftgröße des Labels
-                fontFamily: 'Kalam-Regular',
-                color: '#fff',
-              },
-              headerRight: () => <HeaderProfileButton handleAuthentication={handleAuthentication}/>
-              
-            }}
-          >
-            {(props) => <AuthenticatedScreen {...props} email={email} user={user} handleAuthentication={handleAuthentication} />}
-          </Tab.Screen>
-          
-          <Tab.Screen 
-            name="Create Product List"
-            options={{
-              headerStyle: {
-                backgroundColor: '#21ABA5', // Setzt die Hintergrundfarbe der Kopfzeile
-                borderBottomWidth: 4,  // Setzt eine Linie unter dem Header
-                borderBottomColor: 'white'
-              },
-              headerTitleAlign: 'center', // Zentriert den Titel
-              headerTintColor: '#fff', // Setzt die Farbe des Titels
-              headerTitleStyle: {
-                fontFamily: 'Kalam-Bold', // Setzt die Schriftfamilie
-                fontSize: 34, // Setzt die Schriftgröße
-              },
-              tabBarLabel: 'New List',
-              tabBarActiveTintColor: '#6420AA', // Farbe des Icons und Texts, wenn aktiv
-              tabBarInactiveTintColor: '#fff',
-              tabBarStyle: {
-                backgroundColor: '#21ABA5',
-                height: 70,
-              },
-              tabBarLabelStyle: {
-                fontSize: 20, // Setzt die Schriftgröße des Labels
-                fontFamily: 'Kalam-Regular',
-                color: '#fff',
-              },
-              tabBarIcon: ({ focused, color, size }) => (
-                <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
-                  {focused && <View style={{ height: 4, width: '100%', backgroundColor: '#6420AA' }} />}
-                  <Entypo name="add-to-list" color={color} size={size * 1.5} />
-                </View>
-              ),
-            }}
-          >
-             {(props) => <NewListScreen {...props} email={email} user={user} />}
-          </Tab.Screen>
-          
-          <Tab.Screen 
-            name="Statistics"
-            options={{
-              headerStyle: {
-                backgroundColor: '#21ABA5', // Setzt die Hintergrundfarbe der Kopfzeile
-                borderBottomWidth: 4,  // Setzt eine Linie unter dem Header
-                borderBottomColor: 'white'
-              },
-              headerTitleAlign: 'center', // Zentriert den Titel
-              headerTintColor: '#fff', // Setzt die Farbe des Titels
-              headerTitleStyle: {
-                fontFamily: 'Kalam-Bold', // Setzt die Schriftfamilie
-                fontSize: 34, // Setzt die Schriftgröße
-              },
-              tabBarLabel: 'Statistics',
-              tabBarActiveTintColor: '#a1eb34', // Farbe des Icons und Texts, wenn aktiv
-              tabBarInactiveTintColor: '#fff',
-              tabBarStyle: {
-                backgroundColor: '#21ABA5',
-                height: 70,
-              },
-              tabBarLabelStyle: {
-                fontSize: 20, // Setzt die Schriftgröße des Labels
-                fontFamily: 'Kalam-Regular',
-                color: '#fff',
-              },
-              tabBarIcon: ({ focused, color, size }) => (
-                <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
-                  {focused && <View style={{ height: 4, width: '100%', backgroundColor: '#a1eb34' }} />}
-                  <MaterialIcons name="query-stats" size={size * 1.5} color={color} />
-                </View>
-              ),
-            }}
-          >
-             {(props) => <StatisticsScreen {...props} email={email} user={user} />}
-          </Tab.Screen>
+      <NavigationContainer>
+        {user ? (
+          <Tab.Navigator>
+            <Tab.Screen
+              name="Home"
+              options={{
+                headerStyle: {
+                  backgroundColor: theme === 'light' ? '#21ABA5' : '#333', // Setzt die Hintergrundfarbe der Kopfzeile
+                  borderBottomWidth: 4,  // Setzt eine Linie unter dem Header
+                  borderBottomColor: 'white'
+                },
+                headerTitleAlign: 'center', // Zentriert den Titel
+                headerTintColor: '#fff', // Setzt die Farbe des Titels
+                headerTitleStyle: {
+                  fontFamily: 'Kalam-Bold', // Setzt die Schriftfamilie
+                  fontSize: 34, // Setzt die Schriftgröße
+                },
+                tabBarLabel: 'Home',
+                tabBarActiveTintColor: '#e84c3c', // Farbe des Icons und Texts, wenn aktiv
+                tabBarInactiveTintColor: '#fff',
+                tabBarStyle: {
+                  backgroundColor: theme === 'light' ? '#21ABA5' : '#333',
+                  height: 70,
+                },
+                tabBarIcon: ({ focused, color, size }) => (
+                  <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                    {focused && <View style={{ height: 4, width: '100%', backgroundColor: '#e84c3c' }} />}
+                    <MaterialCommunityIcons name="home" color={color} size={size * 1.5} />
+                  </View>
+                ),
+                tabBarLabelStyle: {
+                  fontSize: 20, // Setzt die Schriftgröße des Labels
+                  fontFamily: 'Kalam-Regular',
+                  color: '#fff',
+                },
+                headerRight: () => <HeaderProfileButton handleAuthentication={handleAuthentication} switchColors={switchColors} />
+              }}
+            >
+              {(props) => <AuthenticatedScreen {...props} email={email} user={user} handleAuthentication={handleAuthentication} theme={theme} />}
+            </Tab.Screen>
 
-          <Tab.Screen 
-            name="Product List" 
-            //component={ProductListScreen} 
-           // email={email}
-            options={{
-              headerStyle: {
-                backgroundColor: '#21ABA5', // Setzt die Hintergrundfarbe der Kopfzeile
-                borderBottomWidth: 4,  // Setzt eine Linie unter dem Header
-                borderBottomColor: 'white'
-              },
-              headerTitleAlign: 'center', // Zentriert den Titel
-              headerTintColor: '#fff', // Setzt die Farbe des Titels
-              headerTitleStyle: {
-                fontFamily: 'Kalam-Bold', // Setzt die Schriftfamilie
-                fontSize: 34, // Setzt die Schriftgröße
-              },
-              tabBarLabel: 'Products',
-              tabBarActiveTintColor: '#FFC90E', // Farbe des Icons und Texts, wenn aktiv
-              tabBarInactiveTintColor: '#fff',
-              tabBarIcon: ({ focused, color, size }) => (
-                <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
-                  {focused && <View style={{ height: 4, width: '100%', backgroundColor: '#FFC90E' }} />}
-                  <MaterialCommunityIcons name="view-list" color={color} size={size * 1.5} />
-                </View>
-              ),
-              tabBarLabelStyle: {
-                fontSize: 20, // Setzt die Schriftgröße des Labels
-                fontFamily: 'Kalam-Regular',
-                color: '#fff',
-              },
-              tabBarStyle: {
-                backgroundColor: '#21ABA5',
-                height: 70,
-              },
-            }}
-          >
-            {(props) => <ProductListScreen {...props} email={email} user={user} />}
-          </Tab.Screen>
-        </Tab.Navigator>
-      ) : (
-        <Stack.Navigator>
-          <Stack.Screen 
-            name="Shopping Cart"
-            /*
-            options={{
-              headerStyle: {
-                backgroundColor: '#21ABA5', // Setzt die Hintergrundfarbe der Kopfzeile
-              },
-              headerTitleAlign: 'center', // Zentriert den Titel
-              headerTintColor: '#fff', // Setzt die Farbe des Titels
-              headerTransparent: true,
-              headerTitleStyle: {
-                fontFamily: 'Kalam-Bold', // Setzt die Schriftfamilie
-                fontSize: 34, // Setzt die Schriftgröße
-              },
-            }}
-*/
-            options={{
-              headerTransparent: true, // Macht den Header transparent
-              headerTitleAlign: 'center',
-              headerTintColor: '#fff',
-              headerTitleStyle: {
-                fontFamily: 'Kalam-Bold',
-                fontSize: 34,
-              },
-            }}
+            <Tab.Screen
+              name="Create Product List"
+              options={{
+                headerStyle: {
+                  backgroundColor: theme === 'light' ? '#21ABA5' : '#333', // Setzt die Hintergrundfarbe der Kopfzeile
+                  borderBottomWidth: 4,  // Setzt eine Linie unter dem Header
+                  borderBottomColor: 'white'
+                },
+                headerTitleAlign: 'center', // Zentriert den Titel
+                headerTintColor: '#fff', // Setzt die Farbe des Titels
+                headerTitleStyle: {
+                  fontFamily: 'Kalam-Bold', // Setzt die Schriftfamilie
+                  fontSize: 34, // Setzt die Schriftgröße
+                },
+                tabBarLabel: 'New List',
+                tabBarActiveTintColor: '#e60b75', // Farbe des Icons und Texts, wenn aktiv
+                tabBarInactiveTintColor: '#fff',
+                tabBarStyle: {
+                  backgroundColor: theme === 'light' ? '#21ABA5' : '#333',
+                  height: 70,
+                },
+                tabBarLabelStyle: {
+                  fontSize: 20, // Setzt die Schriftgröße des Labels
+                  fontFamily: 'Kalam-Regular',
+                  color: '#fff',
+                },
+                tabBarIcon: ({ focused, color, size }) => (
+                  <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                    {focused && <View style={{ height: 4, width: '100%', backgroundColor: '#e60b75' }} />}
+                    <Entypo name="add-to-list" color={color} size={size * 1.5} />
+                  </View>
+                ),
+              }}
+            >
+              {(props) => <NewListScreen {...props} email={email} user={user} theme={theme} />}
+            </Tab.Screen>
 
-          >
-            {(props) => (
-              <AuthScreen
-                {...props}
-                email={email}
-                setEmail={setEmail}
-                password={password}
-                setPassword={setPassword}
-                isLogin={isLogin}
-                setIsLogin={setIsLogin}
-                handleAuthentication={handleAuthentication}
-              />
-            )}
-          </Stack.Screen>
-        </Stack.Navigator>
-      )}
-    </NavigationContainer>
+            <Tab.Screen
+              name="Statistics"
+              options={{
+                headerStyle: {
+                  backgroundColor: theme === 'light' ? '#21ABA5' : '#333', // Setzt die Hintergrundfarbe der Kopfzeile
+                  borderBottomWidth: 4,  // Setzt eine Linie unter dem Header
+                  borderBottomColor: 'white'
+                },
+                headerTitleAlign: 'center', // Zentriert den Titel
+                headerTintColor: '#fff', // Setzt die Farbe des Titels
+                headerTitleStyle: {
+                  fontFamily: 'Kalam-Bold', // Setzt die Schriftfamilie
+                  fontSize: 34, // Setzt die Schriftgröße
+                },
+                tabBarLabel: 'Statistics',
+                tabBarActiveTintColor: '#a1eb34', // Farbe des Icons und Texts, wenn aktiv
+                tabBarInactiveTintColor: '#fff',
+                tabBarStyle: {
+                  backgroundColor: theme === 'light' ? '#21ABA5' : '#333',
+                  height: 70,
+                },
+                tabBarLabelStyle: {
+                  fontSize: 20, // Setzt die Schriftgröße des Labels
+                  fontFamily: 'Kalam-Regular',
+                  color: '#fff',
+                },
+                tabBarIcon: ({ focused, color, size }) => (
+                  <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                    {focused && <View style={{ height: 4, width: '100%', backgroundColor: '#a1eb34' }} />}
+                    <MaterialIcons name="query-stats" size={size * 1.5} color={color} />
+                  </View>
+                ),
+              }}
+            >
+              {(props) => <StatisticsScreen {...props} email={email} user={user} theme={theme} />}
+            </Tab.Screen>
+
+            <Tab.Screen
+              name="Product List"
+              options={{
+                headerStyle: {
+                  backgroundColor: theme === 'light' ? '#21ABA5' : '#333', // Setzt die Hintergrundfarbe der Kopfzeile
+                  borderBottomWidth: 4,  // Setzt eine Linie unter dem Header
+                  borderBottomColor: 'white'
+                },
+                headerTitleAlign: 'center', // Zentriert den Titel
+                headerTintColor: '#fff', // Setzt die Farbe des Titels
+                headerTitleStyle: {
+                  fontFamily: 'Kalam-Bold', // Setzt die Schriftfamilie
+                  fontSize: 34, // Setzt die Schriftgröße
+                },
+                tabBarLabel: 'Products',
+                tabBarActiveTintColor: '#FFC90E', // Farbe des Icons und Texts, wenn aktiv
+                tabBarInactiveTintColor: '#fff',
+                tabBarIcon: ({ focused, color, size }) => (
+                  <View style={{ width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+                    {focused && <View style={{ height: 4, width: '100%', backgroundColor: '#FFC90E' }} />}
+                    <MaterialCommunityIcons name="view-list" color={color} size={size * 1.5} />
+                  </View>
+                ),
+                tabBarLabelStyle: {
+                  fontSize: 20, // Setzt die Schriftgröße des Labels
+                  fontFamily: 'Kalam-Regular',
+                  color: '#fff',
+                },
+                tabBarStyle: {
+                  backgroundColor: theme === 'light' ? '#21ABA5' : '#333',
+                  height: 70,
+                },
+              }}
+            >
+              {(props) => <ProductListScreen {...props} email={email} user={user} theme={theme} />}
+            </Tab.Screen>
+          </Tab.Navigator>
+        ) : (
+          <Stack.Navigator>
+            <Stack.Screen
+              name="Shopping Cart"
+              options={{
+                headerTransparent: true, // Macht den Header transparent
+                headerTitleAlign: 'center',
+                headerTintColor: '#fff',
+                headerTitleStyle: {
+                  fontFamily: 'Kalam-Bold',
+                  fontSize: 34,
+                },
+              }}
+            >
+              {(props) => (
+                <AuthScreen
+                  {...props}
+                  email={email}
+                  setEmail={setEmail}
+                  password={password}
+                  setPassword={setPassword}
+                  isLogin={isLogin}
+                  setIsLogin={setIsLogin}
+                  handleAuthentication={handleAuthentication}
+                />
+              )}
+            </Stack.Screen>
+          </Stack.Navigator>
+        )}
+      </NavigationContainer>
     </MenuProvider>
   );
 }
 
-const HeaderProfileButton = ({handleAuthentication}) => {
+const workInProgress = require('./assets/WorkInProgress.jpg');
+
+const HeaderProfileButton = ({ handleAuthentication, switchColors }) => {
   const [menuVisible, setMenuVisible] = useState(false);
+  const [profileVisible, setProfileVisible] = useState(false);
 
   const handleMenuToggle = () => {
     setMenuVisible(!menuVisible);
   };
 
-  const handleMenuOptionSelect = (option) => {
+  const handleProfileToggle = () => {
     setMenuVisible(false);
-    alert(option);
+    setProfileVisible(true);
+  };
+
+  const closeProfile = () => {
+    setProfileVisible(false);
   };
 
   return (
@@ -400,13 +398,13 @@ const HeaderProfileButton = ({handleAuthentication}) => {
         <TouchableWithoutFeedback onPress={() => setMenuVisible(false)}>
           <View style={styles.modalOverlay}>
             <View style={styles.menu}>
-              <TouchableOpacity style={styles.menuOption} onPress={() => handleMenuOptionSelect('Profile')}>
+              <TouchableOpacity style={styles.menuOption} onPress={handleProfileToggle}>
                 <Text>Profile</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.menuOption} onPress={() => handleMenuOptionSelect('Settings')}>
-                <Text>Settings</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.menuOption} onPress={() => handleMenuOptionSelect('Change Theme')}>
+              <TouchableOpacity style={styles.menuOption} onPress={() => {
+                setMenuVisible(false);
+                switchColors();
+              }}>
                 <Text>Change Theme</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.menuOption} onPress={() => {
@@ -419,10 +417,27 @@ const HeaderProfileButton = ({handleAuthentication}) => {
           </View>
         </TouchableWithoutFeedback>
       </Modal>
+
+      <Modal
+        transparent={true}
+        visible={profileVisible}
+        animationType="fade"
+        onRequestClose={closeProfile}
+      >
+        <TouchableWithoutFeedback onPress={closeProfile}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.profileContainer}>
+              <Image
+                source={workInProgress}
+                style={styles.profileImage}
+              />
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </View>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {
@@ -430,7 +445,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
-    //backgroundColor: '#B4DEE4',
+    // backgroundColor: '#B4DEE4',
   },
   container2: {
     flexGrow: 1,
@@ -438,6 +453,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     backgroundColor: '#B4DEE4',
+    flex: 1,
+  },
+  containerSwitched2: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#000',
+    flex: 1,
+  },
+  containerSwitched3: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#4D648D',
     flex: 1,
   },
   backgroundImage: {
@@ -529,5 +560,13 @@ const styles = StyleSheet.create({
     padding: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
+  },
+  profileImage: {
+    width: 370,
+    height: 370,
+    borderRadius: 100,
+    marginBottom: 20,
+    marginRight: 10,
+    marginTop: 140,
   },
 });
