@@ -3,7 +3,6 @@ import { View, Text, ScrollView, StyleSheet } from "react-native";
 import { getDatabase, ref, onValue } from 'firebase/database';
 import app from "../firebaseConfig";
 
-
 const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleString('en-GB', { 
@@ -28,7 +27,7 @@ const ReadUserProduct = ({ item }) => {
     );
 }
 
-const ReadUser = ({ email }) => {
+const ReadUser = ({ email, theme }) => {
     const [productArray, setProductArray] = useState([]);
 
     console.log("READ USER EMAIL " + email);
@@ -68,7 +67,7 @@ const ReadUser = ({ email }) => {
 
     return (
         <View>
-            <ScrollView style={styles.container}>
+            <ScrollView style={theme === 'light' ? styles.container : styles.containerDark}>
                 {productArray.map((item, index) => (
                     <View key={index}>
                         <ReadUserProduct item={item} />
@@ -85,6 +84,16 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#21ABA5',
+        width: 370,
+        borderColor: '#fff',
+        borderWidth: 4,
+        borderRadius: 15,
+        overflow: 'hidden', // Wichtig, um den Inhalt innerhalb der abgerundeten Grenzen zu halten
+        marginTop: 10,
+    },
+    containerDark: {
+        flex: 1,
+        backgroundColor: '#333',
         width: 370,
         borderColor: '#fff',
         borderWidth: 4,

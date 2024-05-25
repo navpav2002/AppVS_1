@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Dimensions, ScrollView } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
 import app from "../firebaseConfig";
-import { getDatabase, ref, onValue } from 'firebase/database';
+import { getDatabase, ref, onValue, query, orderByChild } from 'firebase/database';
 
 const LineChartComponent = ({ email }) => {
     const [data, setData] = useState([]);
@@ -10,21 +10,38 @@ const LineChartComponent = ({ email }) => {
     useEffect(() => {
         const db = getDatabase(app);
         const productsRef = ref(db, 'realtime/Products');
-        onValue(productsRef, (snapshot) => {
-            const products = snapshot.val();
-            const userProducts = products ? Object.values(products).filter(product => product.email === email) : [];
-
-            let cumulativeSum = 0;
-            const prices = userProducts.map((product, index) => {
-                cumulativeSum += parseFloat(product.productPrice.replace(',', '.'));
-                return {
-                    value: cumulativeSum,
-                    label: `P${index + 1}`
-                };
-            });
-            setData(prices);
+        const dateProductsQuery = query(productsRef, orderByChild('date'));
+      
+        onValue(dateProductsQuery, (snapshot) => {
+          const products = snapshot.val();
+          const userProducts = products ? Object.values(products).filter(product => product.email === email) : [];
+      
+          // Gruppieren Sie die Produkte nach Datum und berechnen Sie die Summe
+          const groupedByDate = userProducts.reduce((acc, product) => {
+            const productDate = new Date(product.date);
+            const day = productDate.getDate();
+            const month = productDate.getMonth() + 1;
+            const dateKey = `${day}.${month}`;
+      
+            if (!acc[dateKey]) {
+              acc[dateKey] = {
+                value: 0,
+                label: dateKey,
+              };
+            }
+      
+            acc[dateKey].value += parseFloat(product.productPrice.replace(',', '.')) * parseFloat(product.productAmount.replace(',', '.'));
+            
+            return acc;
+          }, {});
+      
+          // Konvertieren Sie das Objekt zurück in ein Array
+          const prices = Object.values(groupedByDate);
+      
+          setData(prices);
         });
-    }, [email]);
+      }, [email]);
+      
 
     const yMaxValue = Math.max(...data.map(d => d.value)) || 0;
     const yStep = yMaxValue / 10;
